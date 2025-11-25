@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useAuth } from '../contexts/AuthContext';
+import { Link } from 'react-router-dom';
 import { 
   Download, 
   Share2, 
@@ -8,23 +10,40 @@ import {
   TrendingUp, 
   Smartphone,
   Users,
-  BarChart3
+  BarChart3,
+  Palette,
+  Settings,
+  Home,
+  Zap,
+  User
 } from 'lucide-react';
 
 const Dashboard = () => {
+  const { user } = useAuth();
   const [apps, setApps] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedApp, setSelectedApp] = useState(null);
   const [stats, setStats] = useState(null);
 
   useEffect(() => {
-    fetchApps();
-  }, []);
+    if (user) {
+      fetchApps();
+    } else {
+      setIsLoading(false);
+    }
+  }, [user]);
 
   const fetchApps = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/apps');
-      setApps(response.data);
+      if (user) {
+        // Fetch user-specific apps
+        const response = await axios.get(`http://localhost:5000/api/user/${user.uid}/apps`);
+        setApps(response.data);
+      } else {
+        // Fallback to all apps if not authenticated
+        const response = await axios.get('http://localhost:5000/api/apps');
+        setApps(response.data);
+      }
     } catch (error) {
       console.error('Error fetching apps:', error);
     } finally {
@@ -74,8 +93,46 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-white">
+      {/* Navigation Header */}
+      <nav className="bg-white border-b border-gray-200 px-4 py-4">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <Link to="/" className="flex items-center space-x-2">
+            <Zap className="w-8 h-8 text-blue-600" />
+            <span className="text-xl font-bold text-gray-900">WebToAPK</span>
+          </Link>
+          <div className="flex items-center space-x-6">
+            <Link 
+              to="/" 
+              className="flex items-center space-x-1 text-gray-600 hover:text-blue-600 transition-colors"
+            >
+              <Home className="w-4 h-4" />
+              <span>Home</span>
+            </Link>
+            <Link 
+              to="/generate" 
+              className="flex items-center space-x-1 text-gray-600 hover:text-blue-600 transition-colors"
+            >
+              <Zap className="w-4 h-4" />
+              <span>Generate</span>
+            </Link>
+            <div className="flex items-center space-x-1 text-blue-600">
+              <BarChart3 className="w-4 h-4" />
+              <span className="font-medium">Dashboard</span>
+            </div>
+            <Link 
+              to="/profile" 
+              className="flex items-center space-x-1 text-gray-600 hover:text-blue-600 transition-colors"
+            >
+              <User className="w-4 h-4" />
+              <span>Profile</span>
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      <div className="bg-gray-50 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">#
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -174,17 +231,46 @@ const Dashboard = () => {
                     <tr key={app.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10">
-                            <div className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center">
-                              <Smartphone className="h-5 w-5 text-blue-600" />
+                          <div className="flex-shrink-0 h-10 w-10 relative">
+                            <div 
+                              className="h-10 w-10 rounded-lg bg-blue-100 flex items-center justify-center"
+                              style={{ 
+                                backgroundColor: app.customization ? 
+                                  JSON.parse(app.customization)?.appearance?.primaryColor + '20' || '#EBF8FF' : 
+                                  '#EBF8FF' 
+                              }}
+                            >
+                              <Smartphone 
+                                className="h-5 w-5"
+                                style={{ 
+                                  color: app.customization ? 
+                                    JSON.parse(app.customization)?.appearance?.primaryColor || '#2563EB' : 
+                                    '#2563EB' 
+                                }}
+                              />
                             </div>
+                            {app.customization && (
+                              <div className="absolute -top-1 -right-1 w-4 h-4 bg-purple-500 rounded-full flex items-center justify-center">
+                                <Palette className="h-2 w-2 text-white" />
+                              </div>
+                            )}
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">
-                              {app.name}
+                            <div className="flex items-center">
+                              <div className="text-sm font-medium text-gray-900">
+                                {app.name}
+                              </div>
+                              {app.customization && (
+                                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                                  Customized
+                                </span>
+                              )}
                             </div>
                             <div className="text-sm text-gray-500">
-                              ID: {app.id.substring(0, 8)}...
+                              ID: {app.id.substring(0, 8)}... 
+                              {user && app.user_id === user.uid && (
+                                <span className="ml-1 text-green-600">• Your app</span>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -333,6 +419,7 @@ const Dashboard = () => {
             </div>
           </div>
         )}
+        </div>
       </div>
     </div>
   );
