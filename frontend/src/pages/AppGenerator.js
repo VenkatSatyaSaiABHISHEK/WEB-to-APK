@@ -68,7 +68,7 @@ const AppGenerator = () => {
         submitData.append('icon', iconFile);
       }
       
-      const response = await axios.post('/api/generate-app', submitData, {
+      const response = await axios.post('http://localhost:5000/api/generate-app', submitData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

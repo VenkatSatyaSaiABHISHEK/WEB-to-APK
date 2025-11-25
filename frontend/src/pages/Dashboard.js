@@ -23,7 +23,7 @@ const Dashboard = () => {
 
   const fetchApps = async () => {
     try {
-      const response = await axios.get('/api/apps');
+      const response = await axios.get('http://localhost:5000/api/apps');
       setApps(response.data);
     } catch (error) {
       console.error('Error fetching apps:', error);
@@ -34,7 +34,7 @@ const Dashboard = () => {
 
   const fetchAppStats = async (appId) => {
     try {
-      const response = await axios.get(`/api/stats/${appId}`);
+      const response = await axios.get(`http://localhost:5000/api/stats/${appId}`);
       setStats(response.data);
     } catch (error) {
       console.error('Error fetching app stats:', error);
@@ -227,7 +227,7 @@ const Dashboard = () => {
                           Stats
                         </button>
                         <a
-                          href={`/api/download/${app.id}`}
+                          href={`http://localhost:5000/api/download/${app.id}`}
                           className="text-green-600 hover:text-green-900"
                         >
                           <Download className="h-4 w-4 inline mr-1" />
@@ -316,7 +316,7 @@ const Dashboard = () => {
                   
                   <div className="flex space-x-2 pt-4">
                     <a
-                      href={`/api/download/${selectedApp.id}`}
+                      href={`http://localhost:5000/api/download/${selectedApp.id}`}
                       className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg text-center hover:bg-blue-700 transition-colors"
                     >
                       Download APK
